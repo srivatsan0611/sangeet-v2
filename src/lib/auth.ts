@@ -1,9 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // Spotify scopes needed for the app
 const SPOTIFY_SCOPES = [
@@ -33,14 +31,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = user.id;
       }
       return session;
-    },
-    async jwt({ token, account }) {
-      // Persist the OAuth access_token to the token right after signin
-      if (account) {
-        token.accessToken = account.access_token;
-        token.refreshToken = account.refresh_token;
-      }
-      return token;
     },
   },
   pages: {
