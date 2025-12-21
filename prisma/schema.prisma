@@ -57,10 +57,33 @@ model VerificationToken {
 }
 
 model GeneratedPlaylist {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  vibe      String   // The "Reasoning" from AI
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  id               String   @id @default(cuid())
+  userId           String
+  spotifyPlaylistId String? // Spotify's playlist ID after export
+  title            String
+  description      String?  // AI-generated description
+  vibe             String   // The "Reasoning" from AI
+  seedTracks       Json     // Array of seed track objects used for generation
+  targetParams     Json?    // AI-determined audio feature targets
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracks           PlaylistTrack[]
+
+  @@index([userId])
+}
+
+model PlaylistTrack {
+  id         String   @id @default(cuid())
+  playlistId String
+  spotifyId  String   // Spotify track ID
+  name       String
+  artist     String
+  album      String?
+  imageUrl   String?
+  addedAt    DateTime @default(now())
+  playlist   GeneratedPlaylist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, spotifyId])
+  @@index([playlistId])
 }
