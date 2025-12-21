@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
 
     // Create playlist on Spotify if not already exported
     let spotifyPlaylistId = playlist.spotifyPlaylistId;
-    let spotifyUrl = "";
 
     if (!spotifyPlaylistId) {
       const spotifyPlaylist = await spotify.createPlaylist(
@@ -68,7 +67,6 @@ export async function POST(request: NextRequest) {
       );
 
       spotifyPlaylistId = spotifyPlaylist.id;
-      spotifyUrl = spotifyPlaylist.external_urls.spotify;
 
       await prisma.generatedPlaylist.update({
         where: { id: playlist.id },
@@ -94,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       playlist: updatedPlaylist,
-      spotifyUrl: spotifyUrl || `https://open.spotify.com/playlist/${spotifyPlaylistId}`,
+      spotifyUrl: `https://open.spotify.com/playlist/${spotifyPlaylistId}`,
     });
   } catch (error) {
     console.error("Playlist export error:", error);

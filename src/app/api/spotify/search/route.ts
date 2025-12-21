@@ -23,10 +23,12 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
-    const limit = Math.min(
-      parseInt(searchParams.get("limit") || "20"),
-      50
-    );
+    const rawLimit = searchParams.get("limit");
+    let parsedLimit = rawLimit !== null ? parseInt(rawLimit, 10) : 20;
+    if (Number.isNaN(parsedLimit) || parsedLimit <= 0) {
+      parsedLimit = 20;
+    }
+    const limit = Math.min(parsedLimit, 50);
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json(

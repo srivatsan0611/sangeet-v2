@@ -229,7 +229,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const updates: Record<string, string> = {};
+    const updates: Record<string, string | null> = {};
     if (body.title) updates.title = body.title;
     if (body.description !== undefined) updates.description = body.description;
 

@@ -84,7 +84,12 @@ export async function POST(request: NextRequest) {
           album: track.album,
           imageUrl: track.imageUrl,
         },
-        update: {},
+        update: {
+          name: track.name,
+          artist: track.artist,
+          album: track.album,
+          imageUrl: track.imageUrl,
+        },
       })
     );
 
