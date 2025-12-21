@@ -115,6 +115,11 @@ export class SpotifyClient {
   }
 
   async search(query: string, type: string = "track", limit: number = 20) {
+    const MAX_QUERY_LENGTH = 200;
+    if (query.length > MAX_QUERY_LENGTH) {
+      throw new Error(`Search query exceeds maximum length of ${MAX_QUERY_LENGTH} characters`);
+    }
+
     return this.request<SpotifyApi.SearchResponse>(
       `/search?q=${encodeURIComponent(query)}&type=${type}&limit=${limit}`
     );
@@ -164,25 +169,69 @@ export class SpotifyClient {
   }
 
   async addTracksToPlaylist(playlistId: string, trackUris: string[]) {
-    return this.request<{ snapshot_id: string }>(
-      `/playlists/${playlistId}/tracks`,
-      {
-        method: "POST",
-        body: JSON.stringify({ uris: trackUris }),
-      }
-    );
+    const MAX_TRACKS_PER_REQUEST = 100;
+
+    // If within limit, use a single request
+    if (trackUris.length <= MAX_TRACKS_PER_REQUEST) {
+      return this.request<{ snapshot_id: string }>(
+        `/playlists/${playlistId}/tracks`,
+        {
+          method: "POST",
+          body: JSON.stringify({ uris: trackUris }),
+        }
+      );
+    }
+
+    // For larger batches, chunk into multiple requests
+    let lastResponse: { snapshot_id: string } | null = null;
+    for (let i = 0; i < trackUris.length; i += MAX_TRACKS_PER_REQUEST) {
+      const chunk = trackUris.slice(i, i + MAX_TRACKS_PER_REQUEST);
+      lastResponse = await this.request<{ snapshot_id: string }>(
+        `/playlists/${playlistId}/tracks`,
+        {
+          method: "POST",
+          body: JSON.stringify({ uris: chunk }),
+        }
+      );
+    }
+
+    // lastResponse is non-null because trackUris.length > 0 if we reach here
+    return lastResponse as { snapshot_id: string };
   }
 
   async removeTracksFromPlaylist(playlistId: string, trackUris: string[]) {
-    return this.request<{ snapshot_id: string }>(
-      `/playlists/${playlistId}/tracks`,
-      {
-        method: "DELETE",
-        body: JSON.stringify({
-          tracks: trackUris.map((uri) => ({ uri })),
-        }),
-      }
-    );
+    const MAX_TRACKS_PER_REQUEST = 100;
+
+    // If within limit, use a single request
+    if (trackUris.length <= MAX_TRACKS_PER_REQUEST) {
+      return this.request<{ snapshot_id: string }>(
+        `/playlists/${playlistId}/tracks`,
+        {
+          method: "DELETE",
+          body: JSON.stringify({
+            tracks: trackUris.map((uri) => ({ uri })),
+          }),
+        }
+      );
+    }
+
+    // For larger batches, chunk into multiple requests
+    let lastResponse: { snapshot_id: string } | null = null;
+    for (let i = 0; i < trackUris.length; i += MAX_TRACKS_PER_REQUEST) {
+      const chunk = trackUris.slice(i, i + MAX_TRACKS_PER_REQUEST);
+      lastResponse = await this.request<{ snapshot_id: string }>(
+        `/playlists/${playlistId}/tracks`,
+        {
+          method: "DELETE",
+          body: JSON.stringify({
+            tracks: chunk.map((uri) => ({ uri })),
+          }),
+        }
+      );
+    }
+
+    // lastResponse is non-null because trackUris.length > 0 if we reach here
+    return lastResponse as { snapshot_id: string };
   }
 
   async getCurrentUser() {
