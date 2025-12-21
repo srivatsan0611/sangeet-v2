@@ -49,6 +49,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate audio feature parameters are within acceptable range (0.0 to 1.0)
+    if (body.targetParams) {
+      const audioFeatures = ["target_valence", "target_energy", "target_danceability"];
+      for (const feature of audioFeatures) {
+        const value = body.targetParams[feature];
+        if (value !== undefined && (value < 0 || value > 1)) {
+          return NextResponse.json(
+            { error: `${feature} must be between 0.0 and 1.0` },
+            { status: 400 }
+          );
+        }
+      }
+
+      // min_popularity should be 0-100
+      if (
+        body.targetParams.min_popularity !== undefined &&
+        (body.targetParams.min_popularity < 0 || body.targetParams.min_popularity > 100)
+      ) {
+        return NextResponse.json(
+          { error: "min_popularity must be between 0 and 100" },
+          { status: 400 }
+        );
+      }
+    }
+
     const spotify = await SpotifyClient.forUser(session.user.id);
 
     const params = {

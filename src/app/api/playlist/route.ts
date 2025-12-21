@@ -75,6 +75,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const MAX_TRACKS_PER_PLAYLIST = 1000;
+    if (body.tracks.length > MAX_TRACKS_PER_PLAYLIST) {
+      return NextResponse.json(
+        { error: `Maximum ${MAX_TRACKS_PER_PLAYLIST} tracks allowed per playlist` },
+        { status: 400 }
+      );
+    }
+
     const playlist = await prisma.generatedPlaylist.create({
       data: {
         userId: session.user.id,

@@ -155,8 +155,16 @@ export class SpotifyClient {
   }
 
   async createPlaylist(userId: string, name: string, description?: string) {
+    // Ensure the provided userId matches the authenticated Spotify user's ID
+    const currentUser = await this.getCurrentUser();
+    if (currentUser.id !== userId) {
+      throw new Error(
+        "Spotify userId mismatch: cannot create a playlist for a different user"
+      );
+    }
+
     return this.request<SpotifyApi.CreatePlaylistResponse>(
-      `/users/${userId}/playlists`,
+      `/users/${currentUser.id}/playlists`,
       {
         method: "POST",
         body: JSON.stringify({

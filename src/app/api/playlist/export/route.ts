@@ -78,7 +78,9 @@ export async function POST(request: NextRequest) {
 
     // Sync tracks if requested
     if (body.syncTracks !== false && playlist.tracks.length > 0) {
-      const trackUris = playlist.tracks.map((track) => `spotify:track:${track.spotifyId}`);
+      const trackUris = Array.from(
+        new Set(playlist.tracks.map((track) => `spotify:track:${track.spotifyId}`))
+      );
 
       await spotify.addTracksToPlaylist(spotifyPlaylistId, trackUris);
     }
@@ -154,9 +156,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     const spotify = await SpotifyClient.forUser(session.user.id);
-    const trackUris = playlist.tracks.map((track) => `spotify:track:${track.spotifyId}`);
+    const trackUris = Array.from(
+      new Set(playlist.tracks.map((track) => `spotify:track:${track.spotifyId}`))
+    );
 
-    // For sync, we'll add all tracks (Spotify handles duplicates)
+    // For sync, add all unique tracks from the local playlist
     if (trackUris.length > 0) {
       await spotify.addTracksToPlaylist(playlist.spotifyPlaylistId, trackUris);
     }

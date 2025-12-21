@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       name: track.name,
       artist: track.artists.map((a) => a.name).join(", "),
       album: track.album.name,
-      imageUrl: track.album.images[0]?.url || null,
+      imageUrl: track.album.images?.[0]?.url || null,
       uri: track.uri,
       externalUrl: track.external_urls.spotify,
     })) || [];
