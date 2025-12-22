@@ -2,8 +2,10 @@
   "name": "sangeet-v2",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "node server.js",
+    "dev:http": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

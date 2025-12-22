@@ -10,10 +10,14 @@ An AI-powered Spotify playlist curator that transforms how you discover music. T
 - Should be hosted in Vercel as a full stack NextJS app (hopefully)
 - **AI-First UX**: Real-time streaming of LLM reasoning with glassmorphic "Deep Space Glass" design system
 
-## Quick Start
+## Quick Setup
 
+Since Spotify OAuth works on HTTPS Redirect URIs alone, head over to this section:  [How to run this Project on a HTTPS Local Server](docs/HTTPS_SETUP.md)
+
+Once this is done, the TLDR is:
 ```bash
 npm install
 npm run dev
+npm run dev:http # If for some reason you wanna run the HTTP Version
 ```
 

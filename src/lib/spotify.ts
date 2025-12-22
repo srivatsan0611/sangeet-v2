@@ -46,12 +46,18 @@ async function refreshSpotifyToken(
   userId: string,
   refreshToken: string
 ): Promise<string> {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("Spotify client ID and secret must be configured");
+  }
+
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       Authorization: `Basic ${Buffer.from(
-        `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+        `${clientId}:${clientSecret}`
       ).toString("base64")}`,
     },
     body: new URLSearchParams({
@@ -107,8 +113,32 @@ export class SpotifyClient {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Spotify API error: ${response.status} - ${error}`);
+      let errorMessage = "";
+      try {
+        // Try to parse a JSON error response first
+        const errorBody = await response.json();
+        if (errorBody !== null && errorBody !== undefined) {
+          if (typeof errorBody === "string") {
+            errorMessage = errorBody;
+          } else {
+            errorMessage = JSON.stringify(errorBody);
+          }
+        }
+      } catch {
+        // Fallback to plain text if JSON parsing fails
+        try {
+          const text = await response.text();
+          errorMessage = text || "";
+        } catch {
+          // Ignore secondary errors while reading the body
+        }
+      }
+      if (!errorMessage) {
+        errorMessage = response.statusText || "Unknown error";
+      }
+      throw new Error(
+        `Spotify API error: ${response.status} ${response.statusText || ""} - ${errorMessage}`
+      );
     }
 
     return response.json();
@@ -248,6 +278,7 @@ export class SpotifyClient {
 }
 
 // Type definitions for Spotify API responses
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SpotifyApi {
   export interface SearchResponse {
     tracks?: {
@@ -270,7 +301,7 @@ export namespace SpotifyApi {
     external_urls: { spotify: string };
   }
 
-  export interface SingleTrackResponse extends Track {}
+  export type SingleTrackResponse = Track;
 
   export interface RecommendationsFromSeedsResponse {
     tracks: Track[];
