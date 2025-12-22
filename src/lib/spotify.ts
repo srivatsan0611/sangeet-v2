@@ -301,7 +301,7 @@ export namespace SpotifyApi {
     external_urls: { spotify: string };
   }
 
-  export type SingleTrackResponse = Track
+  export type SingleTrackResponse = Track;
 
   export interface RecommendationsFromSeedsResponse {
     tracks: Track[];
