@@ -87,3 +87,16 @@ model PlaylistTrack {
   @@unique([playlistId, spotifyId])
   @@index([playlistId])
 }
+
+model AIAnalysisCache {
+  id         String   @id @default(cuid())
+  cacheKey   String   @unique  // SHA256 hash of sorted seed track IDs
+  seedTracks Json     // Array of seed track objects
+  analysis   Json     // AI analysis result
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime // Cache TTL: 7 days
+  hitCount   Int      @default(0)
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+}
