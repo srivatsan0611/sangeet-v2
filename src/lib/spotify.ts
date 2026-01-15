@@ -275,6 +275,33 @@ export class SpotifyClient {
   async getCurrentUser() {
     return this.request<SpotifyApi.CurrentUsersProfileResponse>("/me");
   }
+
+  /**
+   * Gets audio features for a single track
+   * @param trackId Spotify track ID
+   * @returns Audio features including valence, energy, danceability, etc.
+   */
+  async getAudioFeatures(trackId: string): Promise<SpotifyApi.AudioFeatures> {
+    return this.request<SpotifyApi.AudioFeatures>(`/audio-features/${trackId}`);
+  }
+
+  /**
+   * Gets audio features for multiple tracks in a single request
+   * @param trackIds Array of Spotify track IDs (max 100)
+   * @returns Array of audio features objects
+   */
+  async getMultipleAudioFeatures(trackIds: string[]): Promise<SpotifyApi.AudioFeatures[]> {
+    const MAX_TRACKS = 100;
+    if (trackIds.length > MAX_TRACKS) {
+      throw new Error(`Maximum ${MAX_TRACKS} tracks allowed per request`);
+    }
+
+    const response = await this.request<{ audio_features: SpotifyApi.AudioFeatures[] }>(
+      `/audio-features?ids=${trackIds.join(",")}`
+    );
+
+    return response.audio_features;
+  }
 }
 
 // Type definitions for Spotify API responses
@@ -328,5 +355,22 @@ export namespace SpotifyApi {
     display_name: string;
     email: string;
     images: Array<{ url: string }>;
+  }
+
+  export interface AudioFeatures {
+    id: string;
+    danceability: number;
+    energy: number;
+    key: number;
+    loudness: number;
+    mode: number;
+    speechiness: number;
+    acousticness: number;
+    instrumentalness: number;
+    liveness: number;
+    valence: number;
+    tempo: number;
+    duration_ms: number;
+    time_signature: number;
   }
 }
