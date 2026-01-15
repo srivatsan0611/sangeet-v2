@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { createHash } from "crypto";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { SpotifyClient } from "@/lib/spotify";
 import { GroqClient } from "@/lib/groq";
 import { prisma } from "@/lib/prisma";
 import type {
   AIAnalysisRequest,
-  AIAnalysisResponse,
+  AIAnalysisResult,
   SeedTrack,
 } from "@/types/ai";
 
@@ -106,10 +107,10 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json({
-        analysis: cachedAnalysis.analysis,
-        seedTracks: cachedAnalysis.seedTracks,
+        analysis: cachedAnalysis.analysis as unknown as AIAnalysisResult,
+        seedTracks: cachedAnalysis.seedTracks as unknown as SeedTrack[],
         cached: true,
-      } as AIAnalysisResponse);
+      });
     }
 
     // 5. Cache miss - fetch audio features from Spotify if not provided
@@ -176,14 +177,14 @@ export async function POST(request: NextRequest) {
       where: { cacheKey },
       create: {
         cacheKey,
-        seedTracks: seedTracksWithFeatures,
-        analysis,
+        seedTracks: seedTracksWithFeatures as unknown as Prisma.InputJsonValue,
+        analysis: analysis as unknown as Prisma.InputJsonValue,
         expiresAt,
         hitCount: 0,
       },
       update: {
-        seedTracks: seedTracksWithFeatures,
-        analysis,
+        seedTracks: seedTracksWithFeatures as unknown as Prisma.InputJsonValue,
+        analysis: analysis as unknown as Prisma.InputJsonValue,
         expiresAt,
         // Don't reset hitCount on update
       },
@@ -194,7 +195,7 @@ export async function POST(request: NextRequest) {
       analysis,
       seedTracks: seedTracksWithFeatures,
       cached: false,
-    } as AIAnalysisResponse);
+    });
   } catch (error) {
     console.error("AI analysis error:", error);
 

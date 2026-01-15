@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
 
     // Validate audio feature parameters are within acceptable range (0.0 to 1.0)
     if (body.targetParams) {
-      const audioFeatures = ["target_valence", "target_energy", "target_danceability"];
+      const audioFeatures = ["target_valence", "target_energy", "target_danceability"] as const;
       for (const feature of audioFeatures) {
-        const value = body.targetParams[feature];
+        const value = body.targetParams[feature as keyof typeof body.targetParams];
         if (value !== undefined && (value < 0 || value > 1)) {
           return NextResponse.json(
             { error: `${feature} must be between 0.0 and 1.0` },
