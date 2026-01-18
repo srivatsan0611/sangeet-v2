@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -89,8 +90,8 @@ export async function POST(request: NextRequest) {
         title: body.title,
         description: body.description,
         vibe: body.vibe,
-        seedTracks: body.seedTracks,
-        targetParams: body.targetParams,
+        seedTracks: body.seedTracks as unknown as Prisma.InputJsonValue,
+        targetParams: body.targetParams as unknown as Prisma.InputJsonValue,
         tracks: {
           create: body.tracks.map((track) => ({
             spotifyId: track.id,
